@@ -122,7 +122,7 @@ class HTTP(snap.Publisher):
             dict_metric = {}
             LOG.debug("metrics_payload before posting  %s " % json.dumps(metrics_payload) ) 
 
-        config['batch_size'] = 1000
+        #config['batch_size'] = 1000
 
 
         if len(metrics_payload) >= config['batch_size']:
