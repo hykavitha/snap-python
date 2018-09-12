@@ -120,17 +120,15 @@ class HTTP(snap.Publisher):
 	    metrics_payload.append(s)
 
             dict_metric = {}
-            LOG.debug("metrics_payload.append %s " % metrics_payload ) 
+            LOG.debug("metrics_payload before posting  %s " % json.dumps(metrics_payload) ) 
 
         config['batch_size'] = 1000
 
-        LOG.debug("len of metrics_payload :%s" % len(metrics_payload))
 
         if len(metrics_payload) >= config['batch_size']:
             for m in metrics_payload:
                 LOG.debug("metric: %s" % m)
             try:
-                LOG.debug("session.post batch_size : %s " % metrics_payload)
                 session.post(metrics_url, data=json.dumps(metrics_payload))
 		#session.post(metrics_url, data='\n'.join(metrics_payload))
             except Exception as  e:
@@ -145,7 +143,6 @@ class HTTP(snap.Publisher):
                 LOG.debug("metric: %s" % m)
 
             try:
-                LOG.debug("session.post : %s " % metrics_payload)
                 session.post(metrics_url, data=json.dumps(metrics_payload))
 		#session.post(metrics_url, data='\n'.join(metrics_payload))
             except Exception as e:
