@@ -16,7 +16,9 @@
           "config": {
             "server_name": "13.59.141.92",
             "server_port": 4000,
-           "request_uri" :"ingestion/alert"
+            "request_uri" :"ingestion/alert",
+	    "user_name" : "user1",
+	    "user_password" : "user1Pass"
 	 }
         }
       ]

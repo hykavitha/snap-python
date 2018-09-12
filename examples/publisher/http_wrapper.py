@@ -4,7 +4,7 @@ import os
 import socket
 import logging
 import requests
-
+import json
 import sys
 
 #dirpath = os.path.dirname(__file__)
@@ -19,7 +19,7 @@ from google.protobuf import text_format
 #print(snap)
 
 LOG = logging.getLogger(__name__)
-h = logging.FileHandler('/tmp/snap_plugini_http.log', 'a')
+h = logging.FileHandler('/tmp/snap_plugin_http.log', 'a')
 h.setLevel('DEBUG')
 LOG.addHandler(h)
 
@@ -82,58 +82,69 @@ class HTTP(snap.Publisher):
 
         session = requests.Session()
         # For later
-        # session.auth = requests.auth.HTTPBasicAuth(config['http_user'], config['http_pass'])
-
+        session.auth = requests.auth.HTTPBasicAuth('user1', 'user1Pass')
+	LOG.debug("session.auth  :%s" % session.auth)
         metrics_payload = []
-        if len(metrics) > 0:
-            for metric in metrics:
-                try:
-                    metric.data
-                except e:
-                    LOG.debug("Eh? metric has no data: %s" % e)
-                    continue
+	LOG.debug("len of metrics :%s" % len(metrics))
+	LOG.debug("metrics data : %s" %(metrics))
+        dict_metric = {}
 
-                metric_namespace = ['']
-                # For some reason pop() is making python blow up
-                # for nse in metric.namespace.pop():
-                for nse in metric.namespace._pb:
-                    metric_namespace.append(nse.Value)
-                metric_namespace = '/'.join(metric_namespace)
+        for metric in metrics:
+            try:
+                metric.data
+            except Exception as e:
+                LOG.debug("Eh? metric has no data: %s" % e)
+                continue
 
-                LOG.debug(
-                    "Saw metric timestamp:%s namespace:%s data:%s unit:%s tags:%s description:%s" %
-                    (metric.timestamp, metric_namespace, metric.data, metric.unit, metric.tags,
-                     metric.description))
+            metric_namespace = ['']
+            # For some reason pop() is making python blow up
+            # for nse in metric.namespace.pop():
+            for nse in metric.namespace._pb:
+                metric_namespace.append(nse.Value)
+            metric_namespace = '/'.join(metric_namespace)
+
+            LOG.debug(
+                "Saw metric timestamp:%s namespace:%s data:%s unit:%s tags:%s description:%s" %
+                (metric.timestamp, metric_namespace, metric.data, metric.unit, metric.tags,
+                 metric.description))
+            
 
 
-                #print(metric.timestamp, metric_namespace, metric.data, metric.unit, metric.tags,
-                     #metric.description)
 
-                config['batch_size'] = 1
+            dict_metric = {'timestamp': metric.timestamp, 'namespace' : metric_namespace, 'data': metric.data, 'unit' : metric.unit,
+                           'tags' : metric.tags, 'description' : metric.description }
+            metrics_payload.append(metric)
+            dict_metric = {}
 
-                if len(metrics_payload) >= config['batch_size']:
-                    for m in metrics_payload:
-                        LOG.debug("metric: %s" % m)
-                    try:
-			LOG.debug("session.post : ", metrics_payload)
-                        session.post(metrics_url, data='\n'.join(metrics_payload))
-                    except e:
-                        LOG.debug("Exception sending metrics: %s" % e)
-                    else:
-                        LOG.debug("Sent %s metrics" % len(metrics_payload))
 
-                    metrics_payload = []
+        config['batch_size'] = 1000
 
-            if len(metrics_payload):
-                for m in metrics_payload:
-                    LOG.debug("metric: %s" % m)
+        LOG.debug("len of metrics_payload :%s" % len(metrics_payload))
 
-                try:
-                    session.post(metrics_url, data='\n'.join(metrics_payload))
-                except e:
-                    LOG.debug("Exception sending metrics: %s" % e)
-                else:
-                    LOG.debug("Sent %s metrics" % len(metrics_payload))
+        if len(metrics_payload) >= config['batch_size']:
+            for m in metrics_payload:
+                LOG.debug("metric: %s" % m)
+            try:
+                LOG.debug("session.post batch_size : %s " % metrics_payload)
+                session.post(metrics_url, data='\n'.join(metrics_payload))
+            except Exception as  e:
+                LOG.debug("Exception sending metrics: %s" % e)
+            else:
+                LOG.debug("Sent %s metrics" % len(metrics_payload))
+
+            metrics_payload = []
+
+        if len(metrics_payload):
+            for m in metrics_payload:
+                LOG.debug("metric: %s" % m)
+
+            try:
+                LOG.debug("session.post : %s " % metrics_payload)
+                session.post(metrics_url, data='\n'.join(metrics_payload))
+            except Exception as e:
+                LOG.debug("Exception sending metrics: %s" % e)
+            else:
+                LOG.debug("Sent %s metrics" % len(metrics_payload))
 
 
     def get_config_policy(self):
@@ -160,6 +171,14 @@ class HTTP(snap.Publisher):
                     (
                         "batch_size",
                         snap.IntegerRule(default=1000)
+                    ),
+		    (
+                        "user_name",
+                        snap.StringRule(required=True)
+                    ),
+	            (
+                        "user_password",
+                        snap.StringRule(required=True)
                     ),
                     (
                         "plugin_running_on",
