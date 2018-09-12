@@ -112,10 +112,15 @@ class HTTP(snap.Publisher):
 
 
             dict_metric = {'timestamp': metric.timestamp, 'namespace' : metric_namespace, 'data': metric.data, 'unit' : metric.unit,
-                           'tags' : metric.tags, 'description' : metric.description }
-            metrics_payload.append(metric)
-            dict_metric = {}
+                           'description' : metric.description }
+            
 
+	    s = json.dumps(dict_metric)
+	    LOG.debug("json dumps append %s " % s) 
+	    metrics_payload.append(s)
+
+            dict_metric = {}
+            LOG.debug("metrics_payload.append %s " % metrics_payload ) 
 
         config['batch_size'] = 1000
 
@@ -126,7 +131,8 @@ class HTTP(snap.Publisher):
                 LOG.debug("metric: %s" % m)
             try:
                 LOG.debug("session.post batch_size : %s " % metrics_payload)
-                session.post(metrics_url, data='\n'.join(metrics_payload))
+                session.post(metrics_url, data=json.dumps(metrics_payload))
+		#session.post(metrics_url, data='\n'.join(metrics_payload))
             except Exception as  e:
                 LOG.debug("Exception sending metrics: %s" % e)
             else:
@@ -140,7 +146,8 @@ class HTTP(snap.Publisher):
 
             try:
                 LOG.debug("session.post : %s " % metrics_payload)
-                session.post(metrics_url, data='\n'.join(metrics_payload))
+                session.post(metrics_url, data=json.dumps(metrics_payload))
+		#session.post(metrics_url, data='\n'.join(metrics_payload))
             except Exception as e:
                 LOG.debug("Exception sending metrics: %s" % e)
             else:
@@ -191,4 +198,5 @@ class HTTP(snap.Publisher):
 if __name__ == "__main__":
     #HTTP("http_wrapper.py", 1).stop_plugin()
     HTTP("http_wrapper.py", 1).start_plugin()
+
 
