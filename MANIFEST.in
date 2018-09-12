@@ -1,0 +1,9 @@
+exclude .gitignore
+exclude .gitreview
+
+global-exclude *.pyc
+
+include README.md
+include LICENSE
+include versioneer.py
+include snap_plugin/v1/_version.py
