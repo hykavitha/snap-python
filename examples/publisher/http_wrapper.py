@@ -82,7 +82,7 @@ class HTTP(snap.Publisher):
 
         session = requests.Session()
         # For later
-        session.auth = requests.auth.HTTPBasicAuth('user1', 'user1Pass')
+        session.auth = requests.auth.HTTPBasicAuth( config['user_name'],  config['user_password'])
 	LOG.debug("session.auth  :%s" % session.auth)
         metrics_payload = []
 	LOG.debug("len of metrics :%s" % len(metrics))
@@ -126,7 +126,7 @@ class HTTP(snap.Publisher):
             dict_metric = {}
             LOG.debug("metrics_payload before posting  %s " % json.dumps(metrics_payload) ) 
 
-        config['batch_size'] = 1000
+        #config['batch_size'] = 1000
 
 
         if len(metrics_payload) >= config['batch_size']:
