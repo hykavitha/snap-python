@@ -102,17 +102,21 @@ class HTTP(snap.Publisher):
             for nse in metric.namespace._pb:
                 metric_namespace.append(nse.Value)
             metric_namespace = '/'.join(metric_namespace)
+	
+	    metric_tags = {}
+	    for key, value in metric._pb.Tags.items():
+		metric_tags [key] = value 
 
+	    LOG.debug("ADDED TAGS : %s " % metric_tags) 
             LOG.debug(
                 "Saw metric timestamp:%s namespace:%s data:%s unit:%s tags:%s description:%s" %
-                (metric.timestamp, metric_namespace, metric.data, metric.unit, metric.tags,
+                (metric.timestamp, metric_namespace, metric.data, metric.unit, metric_tags,
                  metric.description))
-            
-
-
+           
+	    #LOG.debug("ADDED TAGS : %s " % (metric.tags["instance_id"], metric.tags["event_type"] )) 
 
             dict_metric = {'timestamp': metric.timestamp, 'namespace' : metric_namespace, 'data': metric.data, 'unit' : metric.unit,
-                           'description' : metric.description }
+                           'description' : metric.description, 'tags' : metric_tags  }
             
 
 	    s = json.dumps(dict_metric)
